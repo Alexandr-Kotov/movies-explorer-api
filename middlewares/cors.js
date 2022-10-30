@@ -1,4 +1,7 @@
 const allowedCors = [
+  'http://api.kotov.movies-explorer.nomoredomains.icu/',
+  'https://api.kotov.movies-explorer.nomoredomains.icu/',
+  'http://localhost:3000',
   'localhost:3000',
 ];
 
