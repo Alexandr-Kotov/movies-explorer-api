@@ -4,9 +4,8 @@ const User = require('../models/user');
 const BAD_REQUEST_ERROR = require('../errors/bad-req-error');
 const NOT_FOUND_ERROR = require('../errors/notfound-error');
 const CONFLICT_ERROR = require('../errors/conflict-error');
-const UNAUTHORIZED_ERRROR = require('../errors/unauthorized-error');
 
-const { NODE_ENV } = process.env;
+const { JWT_SECRET, NODE_ENV } = process.env;
 
 module.exports.getUserById = (req, res, next) => {
   User.findById(req.user._id)
@@ -30,8 +29,7 @@ module.exports.createUser = (req, res, next) => {
   const { name, email, password } = req.body;
   bcrypt.hash(password, 10)
     .then((hash) => {
-      console.log(hash);
-      return User.create({
+      User.create({
         name,
         email,
         password: hash,
@@ -45,7 +43,7 @@ module.exports.createUser = (req, res, next) => {
       }))
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        next(new NOT_FOUND_ERROR('Пользователь не найден'));
+        next(new BAD_REQUEST_ERROR('Переданы некорректные данные'));
       }
       if (err.code === 11000) {
         next(new CONFLICT_ERROR('Email уже зарегистрирован'));
@@ -85,5 +83,9 @@ module.exports.login = (req, res, next) => {
       const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
       res.send({ token });
     })
-    .catch(() => next(new UNAUTHORIZED_ERRROR('Необходима авторизация')));
+    .catch(next);
+};
+
+module.exports.signout = (req, res) => {
+  res.cookie('jwt', 'token').send({ message: 'Вы вышли из аккаунта' });
 };

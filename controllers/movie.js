@@ -66,13 +66,13 @@ module.exports.deleteMovie = (req, res, next) => {
       Movie.findByIdAndRemove(req.params._id)
         .then((movie) => {
           if (!movie) {
-            throw new BAD_REQUEST_ERROR('Переданы некорректные данные');
+            throw new NOT_FOUND_ERROR('Карточка с фильмом по указанному id не найдена');
           } return res.send({ movie });
         });
     })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        next(new NOT_FOUND_ERROR('Карточка с фильмом по указанному id не найдена'));
+        next(new BAD_REQUEST_ERROR('Переданы некорректные данные'));
       } else {
         next(err);
       }
