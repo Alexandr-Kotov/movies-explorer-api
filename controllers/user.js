@@ -4,8 +4,7 @@ const User = require('../models/user');
 const BAD_REQUEST_ERROR = require('../errors/bad-req-error');
 const NOT_FOUND_ERROR = require('../errors/notfound-error');
 const CONFLICT_ERROR = require('../errors/conflict-error');
-
-const { JWT_SECRET, NODE_ENV } = process.env;
+const { devSecret } = require('../utils/config');
 
 module.exports.getUserById = (req, res, next) => {
   User.findById(req.user._id)
@@ -85,11 +84,20 @@ module.exports.updateProfile = (req, res, next) => {
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
-      res.status(200).send({ token });
+      const token = jwt.sign({ _id: user._id }, devSecret, { expiresIn: '7d' });
+      res.cookie('jwt', token, {
+        maxAge: 3600000 * 24 * 7,
+        httpOnly: true,
+        sameSite: 'none',
+        secure: true,
+      });
+      res.send({ token });
     })
     .catch(next);
+};
+
+module.exports.signout = (req, res) => {
+  res.cookie('jwt', 'token').send({ message: 'Вы вышли из аккаунта' });
 };
