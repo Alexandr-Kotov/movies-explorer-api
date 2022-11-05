@@ -68,7 +68,8 @@ module.exports.deleteMovie = (req, res, next) => {
           if (!movie) {
             throw new NOT_FOUND_ERROR('Карточка с фильмом по указанному id не найдена');
           } return res.send({ movie });
-        });
+        })
+        .catch(next);
     })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {

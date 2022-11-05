@@ -33,23 +33,30 @@ module.exports.createUser = (req, res, next) => {
         name,
         email,
         password: hash,
-      });
+      })
+        .then((user) => {
+          res.send(
+            {
+              message: 'Пользователь успешно зарегистрирован',
+              _id: user._id,
+              name: user.name,
+              email: user.email,
+            },
+          );
+        })
+        .catch((err) => {
+          if (err.code === 11000) {
+            next(new CONFLICT_ERROR('Email уже зарегистрирован'));
+            return;
+          }
+          if (err.name === 'ValidationError') {
+            next(new BAD_REQUEST_ERROR('Переданы некорректные данные'));
+            return;
+          }
+          next(err);
+        });
     })
-    .then((user) => res.status(201)
-      .send({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-      }))
-    .catch((err) => {
-      if (err.name === 'ValidationError' || err.name === 'CastError') {
-        next(new BAD_REQUEST_ERROR('Переданы некорректные данные'));
-      }
-      if (err.code === 11000) {
-        next(new CONFLICT_ERROR('Email уже зарегистрирован'));
-      }
-      next(err);
-    });
+    .catch(next);
 };
 
 module.exports.updateProfile = (req, res, next) => {
@@ -78,14 +85,11 @@ module.exports.updateProfile = (req, res, next) => {
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
+
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
-      res.send({ token });
+      res.status(200).send({ token });
     })
     .catch(next);
-};
-
-module.exports.signout = (req, res) => {
-  res.cookie('jwt', 'token').send({ message: 'Вы вышли из аккаунта' });
 };

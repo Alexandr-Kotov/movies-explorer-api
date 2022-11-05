@@ -11,7 +11,6 @@ const router = require('./routes/index');
 const keyErrorHandler = require('./middlewares/keyErrorHandler');
 const { mongodb } = require('./utils/config');
 
-const NOT_FOUND_ERROR = require('./errors/notfound-error');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const { PORT = 3000 } = process.env;
@@ -39,8 +38,6 @@ app.get('/crash-test', () => {
 });
 
 app.use(router);
-
-app.use('/*', (req, res, next) => next(new NOT_FOUND_ERROR('Страницы не существует')));
 
 app.use(errorLogger);
 
