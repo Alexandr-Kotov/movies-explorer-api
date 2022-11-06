@@ -87,17 +87,7 @@ module.exports.login = (req, res, next) => {
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, devSecret, { expiresIn: '7d' });
-      res.cookie('jwt', token, {
-        maxAge: 3600000 * 24 * 7,
-        httpOnly: true,
-        sameSite: 'none',
-        secure: true,
-      });
-      res.send({ token });
+      res.status(200).send({ token });
     })
     .catch(next);
-};
-
-module.exports.signout = (req, res) => {
-  res.cookie('jwt', 'token').send({ message: 'Вы вышли из аккаунта' });
 };
